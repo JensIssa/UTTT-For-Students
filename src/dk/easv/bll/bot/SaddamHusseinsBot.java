@@ -19,10 +19,13 @@ public class SaddamHusseinsBot implements IBot {
      */
     @Override
     public IMove doMove(IGameState state) {
+        availableWinningMoves(state);
+
         return bestMove(null);
     }
 
     public IMove bestMove(IMove move){
+
         return null;
     }
 
@@ -30,8 +33,48 @@ public class SaddamHusseinsBot implements IBot {
         return null;
     }
 
-    public IMove checkMiniBoardWin(){
-        return null;
+    //Checks miniboard win
+    public static boolean isWin(String[][] board, IMove move, String currentPlayer){
+        int localX = move.getX() % 3;
+        int localY = move.getY() % 3;
+        int startX = move.getX() - (localX);
+        int startY = move.getY() - (localY);
+
+        //check col
+        for (int i = startY; i < startY + 3; i++) {
+            if (!board[move.getX()][i].equals(currentPlayer))
+                break;
+            if (i == startY + 3 - 1) return true;
+        }
+
+        //check row
+        for (int i = startX; i < startX + 3; i++) {
+            if (!board[i][move.getY()].equals(currentPlayer))
+                break;
+            if (i == startX + 3 - 1) return true;
+        }
+
+        //check diagonal
+        if (localX == localY) {
+            //we're on a diagonal
+            int y = startY;
+            for (int i = startX; i < startX + 3; i++) {
+                if (!board[i][y++].equals(currentPlayer))
+                    break;
+                if (i == startX + 3 - 1) return true;
+            }
+        }
+
+        //check anti diagonal
+        if (localX + localY == 3 - 1) {
+            int less = 0;
+            for (int i = startX; i < startX + 3; i++) {
+                if (!board[i][(startY + 2)-less++].equals(currentPlayer))
+                    break;
+                if (i == startX + 3 - 1) return true;
+            }
+        }
+        return false;
     }
 
     public IMove checkMacroOppWin(){
@@ -87,6 +130,9 @@ public class SaddamHusseinsBot implements IBot {
         return winningMoves;
     }
 
+    public int getCurrentPlayer(IGameState state){
+        return state.getMoveNumber()%2;
+    }
     @Override
     public String getBotName() {
         return BOTNAME;
