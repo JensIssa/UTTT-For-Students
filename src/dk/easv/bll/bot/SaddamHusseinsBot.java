@@ -1,6 +1,7 @@
 package dk.easv.bll.bot;
 
-import com.sun.source.tree.BreakTree;
+import dk.easv.bll.game.GameManager;
+import dk.easv.bll.game.GameState;
 import dk.easv.bll.game.IGameState;
 import dk.easv.bll.move.IMove;
 
@@ -9,78 +10,83 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SaddamHusseinsBot implements IBot {
-
-    private static final String BOTNAME = "TerrorBot";
+    private static final String BOTNAME = "Saddam";
+    private int bestOutcome;
     /**
      * Makes a turn. Implement this method to make your dk.easv.bll.bot do something.
      *
      * @param state the current dk.easv.bll.game state
      * @return The column where the turn was made.
      */
+
     @Override
     public IMove doMove(IGameState state) {
-        availableWinningMoves(state);
+        GameManager currentGame = new GameManager(state);
+        List<IMove> availableMoves = state.getField().getAvailableMoves();
+        IMove selectedMove = null;
 
-        return bestMove(null);
-    }
-
-    public IMove bestMove(IMove move){
-
-        return null;
-    }
-
-    public List<IMove> prefMoves(){
-        return null;
-    }
-
-    //Checks miniboard win
-    public static boolean isWin(String[][] board, IMove move, String currentPlayer){
-        int localX = move.getX() % 3;
-        int localY = move.getY() % 3;
-        int startX = move.getX() - (localX);
-        int startY = move.getY() - (localY);
-
-        //check col
-        for (int i = startY; i < startY + 3; i++) {
-            if (!board[move.getX()][i].equals(currentPlayer))
-                break;
-            if (i == startY + 3 - 1) return true;
+        List<IMove> winMoves = getWinningMoves(state);
+        if(!winMoves.isEmpty()) {
+            selectedMove = winMoves.get(0);
+            return selectedMove; 
         }
 
-        //check row
-        for (int i = startX; i < startX + 3; i++) {
-            if (!board[i][move.getY()].equals(currentPlayer))
-                break;
-            if (i == startX + 3 - 1) return true;
-        }
-
-        //check diagonal
-        if (localX == localY) {
-            //we're on a diagonal
-            int y = startY;
-            for (int i = startX; i < startX + 3; i++) {
-                if (!board[i][y++].equals(currentPlayer))
-                    break;
-                if (i == startX + 3 - 1) return true;
+        for (IMove move : availableMoves) {
+            int score = playerScoreCalculation(state);
+            bestOutcome = smartestBotMove(5, currentGame, true);
+            if(score > bestOutcome)
+            {
+                bestOutcome = score;
+                selectedMove = move;
+                System.out.println(bestOutcome);
             }
         }
+        return selectedMove;
+    }
 
-        //check anti diagonal
-        if (localX + localY == 3 - 1) {
-            int less = 0;
-            for (int i = startX; i < startX + 3; i++) {
-                if (!board[i][(startY + 2)-less++].equals(currentPlayer))
-                    break;
-                if (i == startX + 3 - 1) return true;
+    @Override
+    public String getBotName() {
+        return BOTNAME;
+    }
+    private int smartestBotMove(int depth, GameManager currentGame, boolean isMax) {
+
+        if (isMax) {
+            for (IMove move : currentGame.getCurrentState().getField().getAvailableMoves()) {
+                bestOutcome = Integer.MIN_VALUE;
+                currentGame.updateGame(move);
+                bestOutcome = Math.min(bestOutcome, smartestBotMove(depth -1, currentGame, false));
             }
         }
-        return false;
+        else {
+            for (IMove move : currentGame.getCurrentState().getField().getAvailableMoves()) {
+                bestOutcome = Integer.MAX_VALUE;
+                currentGame.updateGame(move);
+                bestOutcome = Math.max(bestOutcome, smartestBotMove(-1, currentGame, true));
+            }
+        }
+        return bestOutcome;
+    }
+    //TODO FIX THIS BULLSHIT CALCULATION
+    /*
+    Kigger på bottens score, og ser hvad der virker bedst.
+     */
+    public int playerScoreCalculation(IGameState state)
+    {
+        String player = "1";
+        int playerScore = 0;
+        if(state.getMoveNumber()%2==0)
+            player="0";
+        String[][] board =  state.getField().getBoard();
+        for (String[] line: board){
+            for (String pos: line){
+                if (pos.equals(player)){
+                    playerScore++;
+                }
+            }
+        }
+        return playerScore;
     }
 
-    public IMove checkMacroOppWin(){
-        return null;
-    }
-    //Took Jeppes code to confirm a win
     public boolean isWinningMove(IGameState state, IMove move, String player){
         // Clones the array and all values to a new array, so we don't mess with the game
         String[][] board = Arrays.stream(state.getField().getBoard()).map(String[]::clone).toArray(String[][]::new);
@@ -114,8 +120,7 @@ public class SaddamHusseinsBot implements IBot {
         return false;
     }
 
-    //Checks which winning moves are available, highjacked from Jeppes code
-    public List<IMove> availableWinningMoves(IGameState state){
+    public List<IMove> getWinningMoves(IGameState state){
         String player = "1";
         if(state.getMoveNumber()%2==0)
             player="0";
@@ -130,11 +135,4 @@ public class SaddamHusseinsBot implements IBot {
         return winningMoves;
     }
 
-    public int getCurrentPlayer(IGameState state){
-        return state.getMoveNumber()%2;
-    }
-    @Override
-    public String getBotName() {
-        return BOTNAME;
-    }
 }
