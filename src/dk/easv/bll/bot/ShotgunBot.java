@@ -40,7 +40,6 @@ public class ShotgunBot implements IBot {
 
     public IMove combineMaps(ArrayList<MySpicyRunnable> runablesList) {
         HashMap<IMove, Integer> superMap = new HashMap<>();
-        int highestValue = 0;
         IMove bestMove = null;
         Map.Entry<IMove, Integer> maxEntry = null;
 
@@ -61,10 +60,8 @@ public class ShotgunBot implements IBot {
                 maxEntry = entry;
             }
         }
-        System.out.println(superMap);
         assert maxEntry != null;
         bestMove = maxEntry.getKey();
-        System.out.println(bestMove);
         return bestMove;
     }
 
@@ -294,7 +291,6 @@ public class ShotgunBot implements IBot {
         @Override
         public void run() {
             hashMap = calculateWinningMove(gameState);
-            System.out.println(hashMap);
         }
 
         public HashMap<IMove, Integer> getHashMap() {
