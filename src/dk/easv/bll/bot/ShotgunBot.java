@@ -6,9 +6,6 @@ import dk.easv.bll.game.IGameState;
 import dk.easv.bll.move.IMove;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class ShotgunBot implements IBot {
     //final int moveTimeMs = 1000;
@@ -16,13 +13,13 @@ public class ShotgunBot implements IBot {
 
     @Override
     public IMove doMove(IGameState state) {
-        ArrayList<MySpicyRunnable> runablesList = new ArrayList<>();
+        ArrayList<Runable> runablesList = new ArrayList<>();
 
         ArrayList<Thread> threads = new ArrayList<>();
         //creates 3 threads
         int threadCount = 3;
         for (int i = 0; i < threadCount; i++) {
-            MySpicyRunnable runnable = new MySpicyRunnable(state);
+            Runable runnable = new Runable(state);
             runablesList.add(runnable);
             Thread thread = new Thread(runnable);
             thread.start();
@@ -38,14 +35,14 @@ public class ShotgunBot implements IBot {
         return combineMaps(runablesList);
     }
 
-    public IMove combineMaps(ArrayList<MySpicyRunnable> runablesList) {
+    public IMove combineMaps(ArrayList<Runable> runablesList) {
         HashMap<IMove, Integer> superMap = new HashMap<>();
         IMove bestMove = null;
         Map.Entry<IMove, Integer> maxEntry = null;
 
         //create list of all hashmaps
         ArrayList<HashMap<IMove, Integer>> mapList = new ArrayList<>();
-        for (MySpicyRunnable runnable : runablesList) {
+        for (Runable runnable : runablesList) {
             mapList.add(runnable.getHashMap());
         }
 
@@ -281,10 +278,10 @@ public class ShotgunBot implements IBot {
         }
     }
 
-    class MySpicyRunnable implements Runnable {
+    class Runable implements Runnable {
         IGameState gameState;
         HashMap<IMove, Integer> hashMap;
-        public MySpicyRunnable(IGameState state) {
+        public Runable(IGameState state) {
             this.gameState = state;
         }
 
